@@ -17,6 +17,16 @@ export const chatbotId = envVariables.CHATBOT_ID;
 export const responseApiURL = `${baseURL}${endpointPath}`;
 
 async function run() {
+  /**
+   * Conversations to test
+   *
+   * Each conversation is an object with an id and an array of messages
+   *
+   * The id is used to identify the conversation in the output
+   *
+   * The messages (if more than one is given for a conversation) are sent in order to the chatbot
+   * they will be sent sequentially to mimick a real conversation
+   */
   const conversations = [
     {
       id: Math.random().toString(),
