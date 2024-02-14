@@ -16,6 +16,10 @@ export function saveOutput(
   const fileName = `${formattedTime}-${formattedDate}.json`;
   const folderPath = `./outputs/${chatbotId}`;
 
+  if (!fs.existsSync("./outputs")) {
+    fs.mkdirSync("./outputs");
+  }
+
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath);
   }
