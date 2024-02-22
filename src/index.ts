@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import { exit } from "process";
-import { testChatbot } from "./helpers";
+import { testChatbot, type Conversation } from "./helpers";
 import { saveOutput } from "./saveOutput";
+import { logFailedResponses } from "./logFailedResponses";
 
 type Vars = {
   BASE_URL: string;
@@ -27,32 +28,17 @@ async function run() {
    * The messages (if more than one is given for a conversation) are sent in order to the chatbot
    * they will be sent sequentially to mimick a real conversation
    */
-  const conversations = [
-    {
-      id: Math.random().toString(),
-      messages: ["Is Soltour a strategic partner?"],
-    },
-    {
-      id: Math.random().toString(),
-      messages: ["Which commission is giving us?"],
-    },
-    {
-      id: Math.random().toString(),
-      messages: ["Can you name our strategic partners?"],
-    },
-    {
-      id: Math.random().toString(),
-      messages: ["Can you name our strategic partners in Portugal?"],
-    },
-    {
-      id: Math.random().toString(),
-      messages: ["Which partners have charter operation to Agadir on Friday?"],
-    },
-  ];
+  const conversations: Conversation[] = ["How much is it to service my car?"];
 
-  const res = await testChatbot(conversations);
+  const res = await testChatbot({
+    data: {
+      conversations,
+    },
+  });
 
   saveOutput(res);
+  logFailedResponses(res);
+
   exit(0);
 }
 

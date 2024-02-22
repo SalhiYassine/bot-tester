@@ -9,7 +9,12 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@opendocsg/pdf2md": "^0.1.28",
     "axios": "^1.6.7",
-    "dotenv": "^16.4.4"
+    "bottleneck": "^2.19.5",
+    "carbon-connect-js": "^0.0.20",
+    "dotenv": "^16.4.4",
+    "form-data": "^4.0.0",
+    "markdown-tables": "^3.0.4"
   }
 }

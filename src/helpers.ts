@@ -1,66 +1,116 @@
 import axios from "axios";
-import { exit } from "process";
 import { responseApiURL, chatbotId, TOKEN } from ".";
 import { type AlgomoResponse } from "./types";
 
-async function getResponse(message: string, conversationId: string) {
-  const response = await axios
-    .post(
-      responseApiURL,
-      {
-        messageText: message,
-        conversationId: conversationId,
-        botId: chatbotId,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${TOKEN}`,
+import Bottleneck from "bottleneck";
+
+const limiter = new Bottleneck({
+  maxConcurrent: 5,
+  minTime: 1000,
+});
+
+async function getResponse(question: string, conversationId: string) {
+  console.log("Sending question to chatbot: ", question);
+  const response = await limiter.schedule(async () => {
+    console.log("Sending question to chatbot: ", question);
+    const res = await axios
+      .post(
+        responseApiURL,
+        {
+          messageText: question,
+          conversationId: conversationId,
+          botId: chatbotId,
         },
-      }
-    )
-    .catch((err) => {
-      console.error(err);
-      exit(1);
-    });
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        },
+      )
+      .catch((err) => {
+        return {
+          data: {
+            question: question,
+            message: `FAILED TO RESPOND: ${err?.message} ${err?.response?.data?.message}`,
+            metadata: {
+              conversationId: conversationId,
+              generatedQueries: [],
+              responseContext: [],
+            },
+          },
+        };
+      });
+
+    return res;
+  });
 
   const { data } = response;
 
-  return data as AlgomoResponse;
+  const formattedData: AlgomoResponse = {
+    message: data.message,
+    question: question,
+    metadata: {
+      conversationId: conversationId,
+      generatedQueries: data.metadata.generatedQueries,
+      responseContext: data.metadata.responseContext,
+    },
+  };
+
+  return formattedData;
 }
 
 async function converseWithChatbot(
   conversationId: string,
-  messages: string[]
+  messages: string[],
 ): Promise<{
-  messageResponses: {
-    message: string;
-    response: string;
-  }[];
+  messageResponses: AlgomoResponse[];
 }> {
   const responses = [];
 
   for (const message of messages) {
     const data = await getResponse(message, conversationId);
-    responses.push({
-      message,
-      response: data.message,
-    });
+    responses.push(data);
   }
 
   return { messageResponses: responses };
 }
-export async function testChatbot(
-  conversations: {
+
+export async function testChatbot({
+  data,
+}: {
+  data: {
+    conversations: (
+      | {
+          id?: string;
+          messages: string[];
+        }
+      | string
+    )[];
+  };
+}): Promise<
+  {
     id: string;
-    messages: string[];
+    data: { messageResponses: AlgomoResponse[] };
   }[]
-) {
+> {
   return await Promise.all(
-    conversations.map(async (conversation) => ({
-      id: conversation.id,
-      data: await converseWithChatbot(conversation.id, conversation.messages),
-    }))
+    data.conversations.map(async (conversation) => {
+      if (typeof conversation === "string") {
+        const id = Math.random().toString(36).substring(7);
+        return {
+          id,
+          data: await converseWithChatbot(id, [conversation]),
+        };
+      }
+
+      const id = conversation?.id || Math.random().toString(36).substring(7);
+
+      return {
+        id,
+        data: await converseWithChatbot(id, conversation.messages),
+      };
+    }),
   );
 }
