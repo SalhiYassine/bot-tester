@@ -27,7 +27,7 @@ async function getResponse(question: string, conversationId: string) {
             Accept: "application/json",
             Authorization: `Bearer ${TOKEN}`,
           },
-        },
+        }
       )
       .catch((err) => {
         return {
@@ -63,7 +63,7 @@ async function getResponse(question: string, conversationId: string) {
 
 async function converseWithChatbot(
   conversationId: string,
-  messages: string[],
+  messages: string[]
 ): Promise<{
   messageResponses: AlgomoResponse[];
 }> {
@@ -77,17 +77,24 @@ async function converseWithChatbot(
   return { messageResponses: responses };
 }
 
+/**
+ *
+ * - This type is used to define the conversation to test
+ * - If conversations only need to test a single message then it can be a string
+ * - If conversations need to test multiple messages then it can be an object with an id and an array of messages
+ * - The id is used to identify the conversation in the output, it is optional
+ */
+export type Conversation =
+  | {
+      id?: string;
+      messages: string[];
+    }
+  | string;
 export async function testChatbot({
   data,
 }: {
   data: {
-    conversations: (
-      | {
-          id?: string;
-          messages: string[];
-        }
-      | string
-    )[];
+    conversations: Conversation[];
   };
 }): Promise<
   {
@@ -111,6 +118,6 @@ export async function testChatbot({
         id,
         data: await converseWithChatbot(id, conversation.messages),
       };
-    }),
+    })
   );
 }
