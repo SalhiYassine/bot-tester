@@ -10,7 +10,6 @@ const limiter = new Bottleneck({
 });
 
 async function getResponse(question: string, conversationId: string) {
-  console.log("Sending question to chatbot: ", question);
   const response = await limiter.schedule(async () => {
     console.log("Sending question to chatbot: ", question);
     const res = await axios
