@@ -1,5 +1,5 @@
 import axios from "axios";
-import { responseApiURL, chatbotId, TOKEN } from ".";
+import { TOKEN, chatbotId, responseApiURL } from ".";
 import { type AlgomoResponse } from "./types";
 
 import Bottleneck from "bottleneck";
@@ -11,7 +11,7 @@ const limiter = new Bottleneck({
 
 async function getResponse(question: string, conversationId: string) {
   const response = await limiter.schedule(async () => {
-    console.log("Sending question to chatbot: ", question);
+    console.log("Sending question to chatbot: ",conversationId, question);
     const res = await axios
       .post(
         responseApiURL,
