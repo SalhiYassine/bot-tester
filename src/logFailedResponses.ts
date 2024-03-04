@@ -35,7 +35,7 @@ export function logFailedResponses(
 
       if (
         messageResponse.message.includes("apologize") ||
-        messageResponse.message.includes("Sorry") ||
+        messageResponse.message.includes("Sorry")
       ) {
         apologeticMessages.push(messageResponse);
         console.error(
