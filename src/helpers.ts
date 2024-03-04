@@ -1,5 +1,5 @@
 import axios from "axios";
-import { responseApiURL, chatbotId, TOKEN } from ".";
+import { TOKEN, chatbotId, responseApiURL } from ".";
 import { type AlgomoResponse } from "./types";
 
 import Bottleneck from "bottleneck";
@@ -9,9 +9,9 @@ const limiter = new Bottleneck({
   minTime: 1000,
 });
 
-async function getResponse(question: string, conversationId: string) {
+async function getResponse(question: string, conversationId: string, chatbotId:string) {
   const response = await limiter.schedule(async () => {
-    console.log("Sending question to chatbot: ", question);
+    console.log("Sending question to chatbot: ",conversationId, question);
     const res = await axios
       .post(
         responseApiURL,
@@ -62,14 +62,15 @@ async function getResponse(question: string, conversationId: string) {
 
 async function converseWithChatbot(
   conversationId: string,
-  messages: string[]
+  messages: string[],
+  chatbotId: string
 ): Promise<{
   messageResponses: AlgomoResponse[];
 }> {
   const responses = [];
 
   for (const message of messages) {
-    const data = await getResponse(message, conversationId);
+    const data = await getResponse(message, conversationId, chatbotId);
     responses.push(data);
   }
 
@@ -87,6 +88,7 @@ export type Conversation =
   | {
       id?: string;
       messages: string[];
+      chatbot?: string;
     }
   | string;
 export async function testChatbot({
@@ -107,7 +109,7 @@ export async function testChatbot({
         const id = Math.random().toString(36).substring(7);
         return {
           id,
-          data: await converseWithChatbot(id, [conversation]),
+          data: await converseWithChatbot(id, [conversation], chatbotId),
         };
       }
 
@@ -115,7 +117,7 @@ export async function testChatbot({
 
       return {
         id,
-        data: await converseWithChatbot(id, conversation.messages),
+        data: await converseWithChatbot(id, conversation.messages, conversation.chatbot || chatbotId),
       };
     })
   );

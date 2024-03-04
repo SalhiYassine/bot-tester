@@ -1,6 +1,6 @@
 export interface AlgomoResponse {
-  message: string;
   question: string;
+  message: string;
   metadata: {
     conversationId: string;
     generatedQueries: string[];
