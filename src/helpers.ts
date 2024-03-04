@@ -88,6 +88,7 @@ export type Conversation =
   | {
       id?: string;
       messages: string[];
+      chatbot?: string;
     }
   | string;
 export async function testChatbot({
@@ -116,7 +117,7 @@ export async function testChatbot({
 
       return {
         id,
-        data: await converseWithChatbot(id, conversation.messages, chatbotId),
+        data: await converseWithChatbot(id, conversation.messages, conversation.chatbot || chatbotId),
       };
     })
   );
