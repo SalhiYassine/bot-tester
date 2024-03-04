@@ -12,12 +12,12 @@ export function logFailedResponses(
 
   const failedMessages = [];
   const noGeneratedQueries = [];
+  const apologeticMessages = [];
 
   for (const conversation of res) {
     for (const messageResponse of conversation.data.messageResponses) {
+
       if (
-        messageResponse.message.includes("apologize") ||
-        messageResponse.message.includes("Sorry") ||
         messageResponse.message.includes("FAILED")
       ) {
         failedMessages.push(messageResponse);
@@ -32,11 +32,21 @@ export function logFailedResponses(
           `No generated queries for message: "${messageResponse.question}" in conversation: "${conversation.id}"`
         );
       }
+
+      if (
+        messageResponse.message.includes("apologize") ||
+        messageResponse.message.includes("Sorry") ||
+      ) {
+        apologeticMessages.push(messageResponse);
+        console.error(
+          `Apologetic reply for message: "${messageResponse.question}" in conversation: "${conversation.id}"`
+        );
+      }
     }
   }
 
   console.log(
-    `Total messages: ${totalMessages}, Failed messages: ${failedMessages.length}, Messages with no generated queries: ${noGeneratedQueries.length}`
+    `Total messages: ${totalMessages}, Failed messages: ${failedMessages.length}, Messages with no generated queries: ${noGeneratedQueries.length}, Apologetic messages: ${apologeticMessages.length}`
   );
 
   console.log(`Error rate: ${failedMessages.length / totalMessages}`);
